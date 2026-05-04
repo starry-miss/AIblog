@@ -37,8 +37,7 @@ router.get('/', async (req, res) => {
     }
 
     const offset = (parseInt(page) - 1) * parseInt(limit);
-    sql += ' LIMIT ? OFFSET ?';
-    params.push(parseInt(limit), offset);
+    sql += ` LIMIT ${parseInt(limit)} OFFSET ${offset}`;
 
     const posts = await query(sql, params);
 

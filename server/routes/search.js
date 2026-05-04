@@ -20,8 +20,8 @@ router.get('/', async (req, res) => {
       WHERE p.status = 'published'
         AND MATCH(p.title, p.content, p.summary) AGAINST(? IN BOOLEAN MODE)
       ORDER BY relevance DESC
-      LIMIT ? OFFSET ?`,
-      [searchTerm, searchTerm, parseInt(limit), offset]
+      LIMIT ${parseInt(limit)} OFFSET ${offset}`,
+      [searchTerm, searchTerm]
     );
 
     const [countResult] = await query(
@@ -60,8 +60,8 @@ router.get('/', async (req, res) => {
         const posts = await query(
           `SELECT * FROM posts WHERE status = 'published'
             AND (title LIKE ? OR content LIKE ? OR summary LIKE ?)
-          ORDER BY created_at DESC LIMIT ? OFFSET ?`,
-          [searchTerm, searchTerm, searchTerm, parseInt(limit), offset]
+          ORDER BY created_at DESC LIMIT ${parseInt(limit)} OFFSET ${offset}`,
+          [searchTerm, searchTerm, searchTerm]
         );
         const [countResult] = await query(
           `SELECT COUNT(*) as total FROM posts WHERE status = 'published'
