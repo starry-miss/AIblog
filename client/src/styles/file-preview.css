@@ -1,0 +1,192 @@
+.file-preview-page {
+  padding: 32px 0 60px;
+  max-width: 960px;
+}
+
+.preview-header-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding: 28px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--border-radius);
+  box-shadow: 0 2px 16px var(--shadow-pink);
+}
+
+.preview-header-bar .back-link {
+  font-size: 14px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  display: inline-block;
+  width: fit-content;
+  transition: color var(--transition);
+}
+
+.preview-header-bar .back-link:hover {
+  color: var(--primary);
+}
+
+.preview-title-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.preview-file-icon {
+  font-size: 40px;
+  flex-shrink: 0;
+}
+
+.preview-title-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.preview-file-name {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  word-break: break-all;
+}
+
+.preview-file-meta {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.preview-header-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.preview-content-card {
+  overflow: hidden;
+}
+
+.image-preview-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  background: repeating-conic-gradient(#FFF5F7 0% 25%, #FFFAFB 0% 50%) 50% / 20px 20px;
+  min-height: 300px;
+}
+
+.image-preview-img {
+  max-width: 100%;
+  max-height: 600px;
+  object-fit: contain;
+  border-radius: var(--border-radius-sm);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+}
+
+.code-preview-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.code-preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #f5e4e9, #faeef1);
+  border-bottom: 1px solid #f0d6de;
+}
+
+.code-lang-badge {
+  font-size: 12px;
+  color: #a34e6f;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.code-line-hint {
+  font-size: 12px;
+  color: #8a6e78;
+}
+
+.code-preview-body {
+  margin: 0;
+  padding: 24px;
+  background: #faf0f2;
+  overflow-x: auto;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.code-preview-body code {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1.75;
+  color: #2d1b24;
+  background: none !important;
+  padding: 0 !important;
+}
+
+.code-preview-body::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.code-preview-body::-webkit-scrollbar-track {
+  background: #f5e4e9;
+  border-radius: 4px;
+}
+
+.code-preview-body::-webkit-scrollbar-thumb {
+  background: #e8c8d2;
+  border-radius: 4px;
+}
+
+.code-preview-body::-webkit-scrollbar-thumb:hover {
+  background: #d9aebc;
+}
+
+.code-preview-body .hljs-keyword { color: #9c1d4a; font-weight: 700; }
+.code-preview-body .hljs-string  { color: #1a6d34; }
+.code-preview-body .hljs-number  { color: #c73e00; }
+.code-preview-body .hljs-comment { color: #8a6e78; font-style: italic; }
+.code-preview-body .hljs-function { color: #0d3b99; }
+.code-preview-body .hljs-title   { color: #0d3b99; }
+.code-preview-body .hljs-params  { color: #6b1a8a; }
+.code-preview-body .hljs-built_in { color: #00565c; }
+.code-preview-body .hljs-type    { color: #a82e00; }
+.code-preview-body .hljs-literal { color: #9c1d4a; }
+.code-preview-body .hljs-variable { color: #1a1a5e; }
+.code-preview-body .hljs-meta    { color: #4a3a5e; }
+.code-preview-body .hljs-name   { color: #9c1d4a; }
+.code-preview-body .hljs-tag    { color: #9c1d4a; }
+.code-preview-body .hljs-attr   { color: #7a1a4a; }
+.code-preview-body .hljs-selector-class { color: #0d3b99; }
+.code-preview-body .hljs-selector-tag   { color: #9c1d4a; }
+.code-preview-body .hljs-property { color: #0d3b99; }
+
+@media (max-width: 768px) {
+  .preview-header-bar {
+    padding: 20px;
+  }
+
+  .preview-file-name {
+    font-size: 18px;
+  }
+
+  .image-preview-container {
+    padding: 16px;
+  }
+
+  .image-preview-img {
+    max-height: 400px;
+  }
+
+  .code-preview-body {
+    padding: 16px;
+    max-height: 400px;
+  }
+}
