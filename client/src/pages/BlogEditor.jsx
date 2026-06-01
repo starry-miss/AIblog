@@ -1,11 +1,20 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { marked } from 'marked';
+import hljs from 'highlight.js';
 import SEO from '../components/SEO';
-import CodeBlock from '../components/CodeBlock';
 import { useFetch } from '../hooks/useFetch';
 import api from '../utils/api';
 import '../styles/blog-editor.css';
+import '../styles/code-block.css';
+
+function isHtmlContent(content) {
+  return /<\s*(article|section|div|header|h1|h2|p|pre|table)\b/i.test(content || '');
+}
+
+function renderContent(content) {
+  return isHtmlContent(content) ? content : marked(content || '');
+}
 
 export default function BlogEditor() {
   const { id } = useParams();
@@ -37,6 +46,14 @@ export default function BlogEditor() {
       });
     }
   }, [id, isEditing]);
+
+  useEffect(() => {
+    if (preview && isHtmlContent(form.content)) {
+      document.querySelectorAll('.preview-content pre code').forEach(block => {
+        hljs.highlightElement(block);
+      });
+    }
+  }, [preview, form.content]);
 
   const handleChange = (field) => (e) => {
     setForm(prev => ({ ...prev, [field]: e.target.value }));
@@ -109,7 +126,7 @@ export default function BlogEditor() {
           </div>
           <div
             className="preview-content article-content"
-            dangerouslySetInnerHTML={{ __html: marked(form.content || '') }}
+            dangerouslySetInnerHTML={{ __html: renderContent(form.content) }}
           />
         </div>
       ) : (
@@ -172,10 +189,10 @@ export default function BlogEditor() {
           </div>
 
           <div className="form-group">
-            <label>内容（Markdown）</label>
+            <label>内容（HTML / Markdown）</label>
             <textarea
               className="content-editor"
-              placeholder="使用 Markdown 撰写文章内容..."
+              placeholder="可以使用 AI 生成的 HTML，或手动使用 Markdown 撰写文章内容..."
               value={form.content}
               onChange={handleChange('content')}
               rows={20}

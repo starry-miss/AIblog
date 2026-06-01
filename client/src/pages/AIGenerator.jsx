@@ -1,6 +1,6 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { marked } from 'marked';
+import hljs from 'highlight.js';
 import SEO from '../components/SEO';
 import api from '../utils/api';
 import '../styles/ai-generator.css';
@@ -17,6 +17,14 @@ export default function AIGenerator() {
   const [generating, setGenerating] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (step === 3 && result?.html) {
+      document.querySelectorAll('.result-content pre code').forEach(block => {
+        hljs.highlightElement(block);
+      });
+    }
+  }, [step, result]);
 
   const handleFileSelect = (e) => {
     const f = e.target.files[0];
@@ -46,21 +54,21 @@ export default function AIGenerator() {
     }
   };
 
-  const handleExportMarkdown = () => {
-    const blob = new Blob([result.markdown], { type: 'text/markdown;charset=utf-8' });
+  const handleExportHtml = () => {
+    const blob = new Blob([result.html], { type: 'text/html;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `blog-${Date.now()}.md`;
+    a.download = `blog-${Date.now()}.html`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
   const handleSaveAsPost = async () => {
-    const lines = result.markdown.split('\n');
-    const title = lines.find(l => l.startsWith('# '))?.replace('# ', '') || 'AI Generated Post';
-    const content = result.markdown;
-    const summary = content.split('\n').slice(1, 4).join(' ').substring(0, 200);
+    const doc = new DOMParser().parseFromString(result.html, 'text/html');
+    const title = doc.querySelector('h1')?.textContent?.trim() || 'AI Generated Post';
+    const content = result.html;
+    const summary = doc.body.textContent.replace(/\s+/g, ' ').trim().substring(0, 200);
     try {
       const post = await api.createPost({ title, content, summary, status: 'draft' });
       navigate(`/blog/${post.id}/edit`);
@@ -81,10 +89,10 @@ export default function AIGenerator() {
 
   return (
     <div className="ai-generator-page container fade-in-up">
-      <SEO title="AI Writing" description="Generate technical blog posts from code with AI" />
+      <SEO title="AI Notes" description="Generate practical study notes from code with AI" />
 
-      <h1 className="page-title">✨ AI 博客生成器</h1>
-      <p className="page-subtitle">上传代码文件，让 AI 帮你生成技术博客文章</p>
+      <h1 className="page-title">✨ AI 学习笔记生成器</h1>
+      <p className="page-subtitle">上传代码文件，让 AI 帮你生成一看就会的上手笔记</p>
 
       <div className="generator-steps">
         <div className={`step-indicator ${step >= 1 ? 'active' : ''}`}><span>1</span>上传代码</div>
@@ -97,7 +105,7 @@ export default function AIGenerator() {
       {step === 1 && (
         <div className="card generator-card fade-in-up">
           <h3>📂 上传代码文件</h3>
-          <p className="card-desc">代码仅在浏览器内存中处理，不会上传到服务器，完成生成后可选择是否保存为博文</p>
+          <p className="card-desc">代码仅在浏览器内存中处理，生成前会对常见密钥、token、密码做脱敏，完成后可选择是否保存为博文</p>
 
           <div
             className="upload-dropzone"
@@ -147,7 +155,7 @@ export default function AIGenerator() {
               onClick={handleGenerate}
               disabled={!codeContent || generating}
             >
-              {generating ? <><span className="spinner" style={{ width: 20, height: 20 }}></span> 生成中...</> : '✨ 开始生成'}
+              {generating ? <><span className="spinner" style={{ width: 20, height: 20 }}></span> 生成中...</> : '✨ 生成上手笔记'}
             </button>
           </div>
         </div>
@@ -159,7 +167,7 @@ export default function AIGenerator() {
             <div className="result-header">
               <h3>📝 生成结果</h3>
               <div className="result-actions">
-                <button className="btn btn-secondary btn-sm" onClick={handleExportMarkdown}>📥 导出 Markdown</button>
+                <button className="btn btn-secondary btn-sm" onClick={handleExportHtml}>📥 导出 HTML</button>
                 <button className="btn btn-primary btn-sm" onClick={handleSaveAsPost}>💾 保存为文章</button>
                 <button className="btn btn-ghost btn-sm" onClick={handleReset}>🔄 重新生成</button>
               </div>
@@ -169,8 +177,8 @@ export default function AIGenerator() {
               <button className="tab active">📖 预览</button>
               <button className="tab" onClick={() => {
                 const mdWin = window.open('', '_blank');
-                mdWin.document.write(`<pre style="padding:20px;font-family:monospace;font-size:14px;line-height:1.6;white-space:pre-wrap;word-wrap:break-word">${escapeHtml(result.markdown)}</pre>`);
-              }}>📝 查看源码</button>
+                mdWin.document.write(`<pre style="padding:20px;font-family:monospace;font-size:14px;line-height:1.6;white-space:pre-wrap;word-wrap:break-word">${escapeHtml(result.html)}</pre>`);
+              }}>📝 查看 HTML</button>
             </div>
 
             <div
@@ -181,7 +189,7 @@ export default function AIGenerator() {
             <div className="export-bar">
               <p>💡 满意这个结果吗？你可以：</p>
               <div className="export-actions">
-                <button className="btn btn-secondary" onClick={handleExportMarkdown}>📥 下载 Markdown 文件</button>
+                <button className="btn btn-secondary" onClick={handleExportHtml}>📥 下载 HTML 文件</button>
                 <button className="btn btn-primary" onClick={handleSaveAsPost}>💾 保存到博客</button>
               </div>
             </div>
@@ -194,7 +202,7 @@ export default function AIGenerator() {
           <div className="card" style={{ padding: 60, textAlign: 'center' }}>
             <div className="spinner" style={{ width: 48, height: 48, margin: '0 auto 20px' }}></div>
             <h3>🤖 AI 正在分析代码...</h3>
-            <p style={{ color: 'var(--text-secondary)', marginTop: 12 }}>正在生成高质量技术博客文章，请稍候</p>
+            <p style={{ color: 'var(--text-secondary)', marginTop: 12 }}>正在生成清晰、可上手的学习笔记，请稍候</p>
           </div>
         </div>
       )}

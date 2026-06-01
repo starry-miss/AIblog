@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { marked } from 'marked';
 import hljs from 'highlight.js';
@@ -31,6 +32,14 @@ function escapeHtml(text) {
   return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+function isHtmlContent(content) {
+  return /<\s*(article|section|div|header|h1|h2|p|pre|table)\b/i.test(content || '');
+}
+
+function renderContent(content) {
+  return isHtmlContent(content) ? content : renderMarkdown(content);
+}
+
 export default function BlogDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -40,6 +49,14 @@ export default function BlogDetail() {
 
   const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
   const shareText = post?.title || '';
+
+  useEffect(() => {
+    if (post?.content && isHtmlContent(post.content)) {
+      document.querySelectorAll('.article-content pre code').forEach(block => {
+        hljs.highlightElement(block);
+      });
+    }
+  }, [post]);
 
   const handleDelete = async () => {
     if (window.confirm('确定要删除这篇文章吗？')) {
@@ -111,7 +128,7 @@ export default function BlogDetail() {
 
         <div
           className="article-content"
-          dangerouslySetInnerHTML={{ __html: renderMarkdown(post.content) }}
+          dangerouslySetInnerHTML={{ __html: renderContent(post.content) }}
         />
 
         <div className="article-actions">
