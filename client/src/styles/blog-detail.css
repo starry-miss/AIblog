@@ -229,24 +229,65 @@
 }
 
 .article-content .ai-article-template .code-block {
-  background: #1e293b;
-  color: #e2e8f0;
+  background: #1e1e1e;
+  color: #d4d4d4;
   padding: 20px;
-  border-radius: 16px;
+  border-radius: 14px;
   overflow-x: auto;
-  font-family: var(--font-mono);
+  font-family: 'Cascadia Code', 'JetBrains Mono', 'Fira Code', Consolas, var(--font-mono);
   font-size: 14px;
-  line-height: 1.55;
+  line-height: 1.65;
   margin: 20px 0;
-  box-shadow: 0 4px 6px -2px rgba(15, 23, 42, 0.12);
+  border: 1px solid #2d2d2d;
+  box-shadow: 0 16px 35px -18px rgba(0, 0, 0, 0.65);
+  tab-size: 2;
 }
 
-.article-content .ai-article-template .code-block code {
-  background: none;
-  color: inherit;
+.article-content .ai-article-template .code-block code,
+.article-content .ai-article-template .code-block code.hljs {
+  background: transparent;
+  color: #d4d4d4;
   padding: 0;
   font-size: inherit;
+  display: block;
 }
+
+.article-content .ai-article-template .hljs-keyword,
+.article-content .ai-article-template .hljs-literal,
+.article-content .ai-article-template .hljs-symbol,
+.article-content .ai-article-template .hljs-name { color: #569cd6; }
+.article-content .ai-article-template .hljs-link { color: #569cd6; text-decoration: underline; }
+.article-content .ai-article-template .hljs-built_in,
+.article-content .ai-article-template .hljs-type { color: #4ec9b0; }
+.article-content .ai-article-template .hljs-number,
+.article-content .ai-article-template .hljs-class { color: #b5cea8; }
+.article-content .ai-article-template .hljs-string,
+.article-content .ai-article-template .hljs-meta .hljs-string { color: #ce9178; }
+.article-content .ai-article-template .hljs-regexp,
+.article-content .ai-article-template .hljs-template-tag { color: #d16969; }
+.article-content .ai-article-template .hljs-subst,
+.article-content .ai-article-template .hljs-function,
+.article-content .ai-article-template .hljs-title,
+.article-content .ai-article-template .hljs-params,
+.article-content .ai-article-template .hljs-formula { color: #dcdcaa; }
+.article-content .ai-article-template .hljs-comment,
+.article-content .ai-article-template .hljs-quote { color: #6a9955; font-style: italic; }
+.article-content .ai-article-template .hljs-doctag { color: #608b4e; }
+.article-content .ai-article-template .hljs-meta,
+.article-content .ai-article-template .hljs-meta .hljs-keyword { color: #9b9b9b; }
+.article-content .ai-article-template .hljs-variable,
+.article-content .ai-article-template .hljs-template-variable,
+.article-content .ai-article-template .hljs-attr,
+.article-content .ai-article-template .hljs-attribute { color: #9cdcfe; }
+.article-content .ai-article-template .hljs-tag,
+.article-content .ai-article-template .hljs-selector-tag,
+.article-content .ai-article-template .hljs-selector-id,
+.article-content .ai-article-template .hljs-selector-class { color: #569cd6; }
+.article-content .ai-article-template .hljs-property { color: #9cdcfe; }
+.article-content .ai-article-template .hljs-deletion { color: #f44747; }
+.article-content .ai-article-template .hljs-addition { color: #b5cea8; }
+.article-content .ai-article-template .hljs-emphasis { font-style: italic; }
+.article-content .ai-article-template .hljs-strong { font-weight: 700; }
 
 .article-content .ai-article-template table {
   width: 100%;

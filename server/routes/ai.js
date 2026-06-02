@@ -37,32 +37,12 @@ async function callAIWithRetry(messages, options = {}, retries = 0) {
 }
 
 
-function getGenerationOptions(content) {
-  const lineCount = content.split(/\r?\n/).filter(line => line.trim()).length;
-  const charCount = content.length;
-
-  if (lineCount <= 60 || charCount <= 2000) {
-    return {
-      wordRange: '900-1300 字',
-      codeBlockRange: '3-4 个代码块',
-      detailLevel: '短代码也要写成完整上手教程：讲清目标、环境、关键代码、可运行安全版和避坑。'
-    };
-  }
-
-  if (lineCount <= 180 || charCount <= 6000) {
-    return {
-      wordRange: '1400-2200 字',
-      codeBlockRange: '4-6 个代码块',
-      detailLevel: '中等代码要按步骤拆解，重点解释执行顺序、关键对象、参数作用和可迁移用法。'
-    };
-  }
-
-  return {
-    wordRange: '2200-3200 字',
-    codeBlockRange: '5-8 个代码块',
-    detailLevel: '长代码要按模块讲，但每一段都围绕“怎么上手、怎么改、怎么避坑”。'
-  };
-}
+const GENERATION_REQUIREMENTS = {
+  depth: '根据代码复杂度自然展开，不要为了凑字数写废话，也不要省略关键步骤。',
+  code: '按教学需要展示关键代码片段，并给出一个完整可运行的安全版。',
+  logic: '围绕“怎么上手、先做什么、然后做什么、为什么这样写、怎么避坑”来讲；代码短就讲清楚，代码长就按模块拆清楚。',
+  variety: '每次都根据代码主题自由组织标题、章节顺序、解释方式和排版组件，不要套固定模板。'
+};
 
 function redactSensitiveContent(content) {
   return content
@@ -96,7 +76,7 @@ function sanitizeGeneratedHtml(html) {
     allowedClasses: {
       '*': [
         'ai-article-template', 'blog-header', 'badge', 'subhead', 'info-note',
-        'warning-note', 'inline-code', 'footer-meta', 'code-block', 'language-*'
+        'warning-note', 'inline-code', 'footer-meta', 'code-block', 'hljs', 'language-*'
       ]
     },
     disallowedTagsMode: 'discard',
@@ -110,9 +90,10 @@ function buildSystemPrompt(language, generationOptions) {
 必须输出 HTML 片段，不要输出 Markdown，不要输出完整 <!DOCTYPE html>、html、head、body、style、script、iframe、svg、form、input、button、img、a 标签，也不要输出任何 onclick/onerror 等事件属性。
 
 整体要求：
-- 总长度：${generationOptions.wordRange}。
-- 代码展示：${generationOptions.codeBlockRange}，每个代码块要短而有用，必须给出一个完整可运行的安全版。
-- ${generationOptions.detailLevel}
+- ${generationOptions.depth}
+- ${generationOptions.code}
+- ${generationOptions.logic}
+- ${generationOptions.variety}
 - 用基础词汇讲复杂概念，但保持专业准确。
 - 段落要短，列表要清晰，像现代教程博客一样好读。
 - 讲解顺序必须体现“先做什么 -> 然后做什么 -> 最后得到什么”。
@@ -120,50 +101,24 @@ function buildSystemPrompt(language, generationOptions) {
 - 不要编造代码里没有的业务背景；可以补充必要的运行环境、依赖安装和安全改写。
 - 所有真实密钥、token、密码、连接串必须替换成 &lt;YOUR_API_KEY&gt;、&lt;YOUR_TOKEN&gt;、&lt;YOUR_PASSWORD&gt; 或 &lt;YOUR_DATABASE_URL&gt;。
 
-必须严格使用这种 HTML 结构和类名：
-<article class="ai-article-template">
-  <header class="blog-header">
-    <div class="badge">🔧 实战 · 快速入门</div>
-    <h1>具体、有吸引力的教程标题</h1>
-    <p class="subhead">一句话说明这篇教程能帮读者做到什么</p>
-  </header>
+HTML 组件规则：
+- 根节点必须是 <article class="ai-article-template">，除此之外不要固定同一种结构。
+- 可以自由组合 header、section、div、h1/h2/h3、p、ul/ol、table、pre/code、hr。
+- 可以使用这些 class 获得好看的样式：blog-header、badge、subhead、info-note、warning-note、inline-code、footer-meta、code-block。
+- 不要求每篇都用同样的章节标题；请根据代码主题改写标题，比如“先跑起来”“核心流程”“关键对象”“改成安全版”“常见坑”“还能怎么改”。
+- 不要求每篇都按同样顺序；但必须让读者能顺着逻辑读懂。
+- 可以使用信息卡片、警告卡片、流程列表、对比表、概念表、步骤清单，但不要每篇都机械重复同一套。
 
-  <p>亲切开场，说明这段代码适合谁、要解决什么问题。</p>
-
-  <div class="info-note">
-    📌 <strong>目标读者</strong>：...<br>
-    🎯 <strong>学习收益</strong>：...
-  </div>
-
-  <h2>🧠 先理解大局：我们要干什么？</h2>
-  <p>用 2-4 句话讲清目标，并给出 3-5 步整体流程。</p>
-
-  <h2>🔍 解析原始代码：一步一步背后的“为什么”</h2>
-  <h3>🔹 步骤 1：...</h3>
-  <p>解释这段代码做什么，以及为什么要这样写。</p>
-  <pre class="code-block"><code class="language-${(language || 'code').toLowerCase()}">短代码片段</code></pre>
-
-  <h2>🧩 完整逻辑流程图（一眼看懂）</h2>
-  <div class="info-note">用文字箭头描述数据流，例如：输入 → 模型 → 解析器 → 输出。</div>
-
-  <h2>🛠️ 动手改进：写出安全可运行版本</h2>
-  <pre class="code-block"><code class="language-${(language || 'code').toLowerCase()}">完整安全版代码</code></pre>
-
-  <h2>💡 常见疑问与避坑指南</h2>
-  <table>...</table>
-
-  <div class="warning-note">🔐 <strong>重要提醒</strong>：强调密钥、环境变量、base_url 或运行坑。</div>
-
-  <h2>🎯 总结：核心逻辑就几句话</h2>
-  <ol>...</ol>
-
-  <hr>
-  <div class="footer-meta">推荐下一步学习内容。</div>
-</article>
+建议但不固定的内容模块：
+- 一个有吸引力的标题和简短副标题。
+- 适合人群 / 学习收益，可以用 info-note，也可以融入开头段落。
+- 代码要做什么、整体流程、关键代码拆解、安全可运行版本、常见坑、总结。
+- 如果代码不适合某个模块，就不要硬写；换成更适合该代码的讲法。
 
 代码规则：
+- 所有生成结果必须是 HTML；不要把代码块写成 Markdown 三反引号。
 - 行内代码必须用 <code class="inline-code">...</code>。
-- 代码块必须用 <pre class="code-block"><code class="language-${(language || 'code').toLowerCase()}">...</code></pre>。
+- 代码块必须用 <pre class="code-block"><code class="language-${(language || 'code').toLowerCase()}">...</code></pre>，前端会用 highlight.js 渲染成接近 VS Code 深色主题的高亮效果。
 - 代码块里的 <、>、& 必须转义为 &amp;lt;、&amp;gt;、&amp;amp;，避免破坏 HTML。
 - 不要在 HTML 里写 style 属性，样式由前端 CSS 提供。
 
@@ -178,15 +133,15 @@ function buildUserPrompt({ language, filename, codeContent, custom_prompt }) {
 
   return `请根据${source}写一篇现代 HTML 排版的初学者实战教程。${extra}
 
-请先阅读代码，再自动判断主题。文章要完全接近这种风格：顶部 badge + 大标题 + 副标题 + 信息卡片 + 分步骤讲解 + 深色代码块 + 表格 + 警告卡片 + 总结。读者看完要知道先做什么、然后做什么、最后得到什么。
+请先阅读代码，再自动判断主题。文章要有现代 HTML 教程的质感：标题清楚、层次好看、代码块突出、重点提醒醒目、逻辑顺序自然。不要照搬固定章节模板，每次都根据代码内容重新组织讲法，让排版和章节看起来像为这段代码专门写的。
 
 必须做到：
 - 只输出 HTML 片段，根节点必须是 <article class="ai-article-template">。
 - 不要输出 Markdown，不要输出完整 HTML 页面，不要输出 style/script/body/head。
-- 必须展示关键代码片段和完整安全版代码。
-- 必须包含“目标读者/学习收益”的 info-note。
-- 必须包含一个 HTML table 解释关键概念、参数或变量。
-- 必须包含 warning-note 说明最容易踩的坑。
+- 不允许使用 Markdown 代码围栏；所有代码都必须放在 <pre class="code-block"><code class="language-${(language || 'code').toLowerCase()}">...</code></pre> 中。
+- 必须展示关键代码片段和完整安全版代码，但代码块数量由内容需要决定。
+- 根据内容自由决定是否使用 info-note、warning-note、table、列表、流程说明和 footer-meta，不要每篇机械重复同一套。
+- 如果使用表格，表格必须真的能帮助理解关键概念、参数、流程或常见坑。
 - 如果出现 API Key、token、密码或连接串，必须只显示占位符。
 - 如果代码涉及 LangChain、OpenAI 兼容接口或 DeepSeek，重点讲清 ChatOpenAI、SystemMessage/HumanMessage、StrOutputParser、pipe/链式调用和环境变量。
 
@@ -233,7 +188,7 @@ router.post('/generate', async (req, res) => {
 
     const codeContent = redactSensitiveContent(fs.readFileSync(fullPath, 'utf-8'));
     const language = detectLanguage(file.original_name);
-    const generationOptions = getGenerationOptions(codeContent);
+    const generationOptions = GENERATION_REQUIREMENTS;
 
     const systemPrompt = buildSystemPrompt(language, generationOptions);
     const userPrompt = buildUserPrompt({
@@ -270,7 +225,7 @@ router.post('/generate-from-text', async (req, res) => {
     }
 
     const safeCodeContent = redactSensitiveContent(code_content);
-    const generationOptions = getGenerationOptions(safeCodeContent);
+    const generationOptions = GENERATION_REQUIREMENTS;
     const selectedLanguage = language || 'code';
 
     const systemPrompt = buildSystemPrompt(selectedLanguage, generationOptions);

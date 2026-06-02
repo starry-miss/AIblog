@@ -21,7 +21,13 @@ export default function AIGenerator() {
   useEffect(() => {
     if (step === 3 && result?.html) {
       document.querySelectorAll('.result-content pre code').forEach(block => {
-        hljs.highlightElement(block);
+        const language = Array.from(block.classList).find(cls => cls.startsWith('language-'))?.replace('language-', '');
+        if (language && hljs.getLanguage(language)) {
+          block.innerHTML = hljs.highlight(block.textContent, { language }).value;
+          block.classList.add('hljs');
+        } else {
+          hljs.highlightElement(block);
+        }
       });
     }
   }, [step, result]);

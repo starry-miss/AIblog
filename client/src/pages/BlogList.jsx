@@ -132,18 +132,18 @@ export default function BlogList() {
   );
 
   const postIds = useMemo(() => filteredPosts.map(p => p.id), [filteredPosts]);
-  const activePost = filteredPosts.find(p => p.id === activeDragId);
+  const activePost = allPosts.find(p => p.id === activeDragId);
 
   const handleDragEnd = (event) => {
     const { active, over } = event;
     setActiveDragId(null);
     if (!over || active.id === over.id) return;
 
-    const oldIndex = filteredPosts.findIndex(i => i.id === active.id);
-    const newIndex = filteredPosts.findIndex(i => i.id === over.id);
+    const current = allPostsRef.current;
+    const oldIndex = current.findIndex(p => p.id === active.id);
+    const newIndex = current.findIndex(p => p.id === over.id);
     if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) return;
 
-    const current = allPostsRef.current;
     const reorderedAll = [...current];
     const [moved] = reorderedAll.splice(oldIndex, 1);
     reorderedAll.splice(newIndex, 0, moved);
@@ -180,7 +180,7 @@ export default function BlogList() {
   };
 
   return (
-    <div className="blog-list-page container fade-in-up">
+    <div className="blog-list-page container">
       <SEO title="Blog" description="Explore all technical blog posts" />
 
       <div className="blog-list-header">

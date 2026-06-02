@@ -50,7 +50,13 @@ export default function BlogEditor() {
   useEffect(() => {
     if (preview && isHtmlContent(form.content)) {
       document.querySelectorAll('.preview-content pre code').forEach(block => {
-        hljs.highlightElement(block);
+        const language = Array.from(block.classList).find(cls => cls.startsWith('language-'))?.replace('language-', '');
+        if (language && hljs.getLanguage(language)) {
+          block.innerHTML = hljs.highlight(block.textContent, { language }).value;
+          block.classList.add('hljs');
+        } else {
+          hljs.highlightElement(block);
+        }
       });
     }
   }, [preview, form.content]);

@@ -243,7 +243,7 @@
 }
 
 .drag-overlay-card {
-  width: 600px;
+  width: min(600px, calc(100vw - 32px));
   box-shadow: 0 16px 48px var(--shadow-pink-strong) !important;
   border-color: var(--primary) !important;
   transform: rotate(1deg) scale(1.02);
