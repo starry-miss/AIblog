@@ -43,7 +43,7 @@ function renderContent(content) {
 export default function BlogDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { data: post, loading, error } = useFetch(() => api.getPost(id));
+  const { data: post, loading, error } = useFetch(() => api.getPost(id), [id]);
 
   const formatDate = (d) => new Date(d).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' });
 
