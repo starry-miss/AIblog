@@ -73,7 +73,11 @@ router.get('/', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
   try {
-    const posts = await query('SELECT * FROM posts WHERE id = ? OR slug = ? ORDER BY CASE WHEN id = ? THEN 0 ELSE 1 END LIMIT 1', [req.params.id, req.params.id, req.params.id]);
+    const param = req.params.id;
+    const isNumeric = /^\d+$/.test(param);
+    const posts = isNumeric
+      ? await query('SELECT * FROM posts WHERE id = ?', [param])
+      : await query('SELECT * FROM posts WHERE slug = ?', [param]);
     if (posts.length === 0) return res.status(404).json({ error: 'Post not found' });
 
     const post = posts[0];
